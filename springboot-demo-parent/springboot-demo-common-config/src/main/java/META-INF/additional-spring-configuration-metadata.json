@@ -1,0 +1,14 @@
+{
+    "properties": [
+        {
+            "name": "swagger",
+            "type": "com.yuansong.demo.common.config.SwaggerConfig",
+            "description": "A description for 'swagger'"
+        },
+        {
+            "name": "proj",
+            "type": "com.yuansong.demo.common.config.ProjectConfig",
+            "description": "A description for 'swagger'"
+        }
+    ]
+}

@@ -1,0 +1,34 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.yuansong.demo</groupId>
+    <artifactId>springboot-demo-dependencies</artifactId>
+    <version>${appversion}</version>
+    <relativePath>../springboot-demo-dependencies</relativePath>
+  </parent>
+  <artifactId>springboot-demo-parent</artifactId>
+  <packaging>pom</packaging>
+  <name>SpringbootDemoParent</name>
+  <description>Springboot Demo Parent</description>
+  
+  <properties>
+    <main.basedir>${basedir}/..</main.basedir>
+    <projversion>${appversion}</projversion>
+  </properties>
+  
+  <modules>
+    <module>springboot-demo-common-config</module>
+    <module>springboot-demo-boot-jtoolstest</module>
+    <module>springboot-demo-common-swagger</module>
+  </modules>
+  
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+      </plugin>
+    </plugins>
+  </build>
+  
+</project>

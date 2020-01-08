@@ -1,0 +1,98 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.yuansong.demo</groupId>
+    <artifactId>springboot-demo</artifactId>
+    <version>${appversion}</version>
+  </parent>
+  <artifactId>springboot-demo-dependencies</artifactId>
+  <packaging>pom</packaging>
+  <name>SpringbootDemoDependencies</name>
+  <description>Springboot Demo Dependencies</description>
+  
+  <properties>
+    <main.basedir>${basedir}/..</main.basedir>
+    <yuansong.tools.jtools.common>0.0.4</yuansong.tools.jtools.common>
+	<yuansong.tools.jtools.secret>0.0.0</yuansong.tools.jtools.secret>
+  </properties>
+  
+  <repositories>
+    <repository>
+        <id>deansquirrel-maven-repo-release</id>
+        <url>https://gitee.com/deansquirrel/maven-jrepository/raw/master</url>
+    </repository>
+  </repositories>
+  
+  <dependencies>
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+              <artifactId>spring-boot-starter</artifactId>
+              <exclusions>
+                  <exclusion>
+                      <groupId>org.springframework.boot</groupId>
+                      <artifactId>spring-boot-starter-logging</artifactId>
+                  </exclusion>
+              </exclusions>
+    </dependency>
+    <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-log4j2</artifactId>
+        </dependency>
+  </dependencies>
+  
+  <dependencyManagement>
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+            <version>${springversion}</version>         
+            <exclusions>  
+                <exclusion>  
+                    <groupId>org.springframework.boot</groupId>  
+                    <artifactId>spring-boot-starter-logging</artifactId>  
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <!-- Swagger Begin -->
+        <dependency>
+            <groupId>io.springfox</groupId>
+            <artifactId>springfox-swagger2</artifactId>
+            <version>2.7.0</version>
+        </dependency>
+        <dependency>
+            <groupId>io.springfox</groupId>
+            <artifactId>springfox-swagger-ui</artifactId>
+            <version>2.7.0</version>
+        </dependency>
+        <!-- Swagger End -->
+        <!-- 第三方 Begin -->
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>druid-spring-boot-starter</artifactId>
+            <version>1.1.21</version>
+        </dependency>
+        <!-- 第三方 End -->
+		<!-- 自定义 Begin -->
+		<dependency>
+            <groupId>com.yuansong.tools</groupId>
+            <artifactId>yuansong-jtools-common</artifactId>
+            <version>${yuansong.tools.jtools.common}</version>
+        </dependency>
+		<dependency>
+            <groupId>com.yuansong.tools</groupId>
+            <artifactId>yuansong-jtools-secret</artifactId>
+            <version>${yuansong.tools.jtools.secret}</version>
+        </dependency>
+		<!-- 自定义 End -->
+    </dependencies>
+  </dependencyManagement>
+  
+  <build>
+    <pluginManagement>
+        <plugins>
+        </plugins>
+    </pluginManagement>
+    <plugins>
+    </plugins>
+  </build> 
+</project>
