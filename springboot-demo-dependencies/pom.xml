@@ -12,8 +12,8 @@
   
   <properties>
     <main.basedir>${basedir}/..</main.basedir>
-    <yuansong.tools.jtools.common>0.0.4</yuansong.tools.jtools.common>
-	<yuansong.tools.jtools.secret>0.0.0</yuansong.tools.jtools.secret>
+    <yuansong.tools.jtools.common>0.0.6</yuansong.tools.jtools.common>
+	<yuansong.tools.jtools.secret>0.0.2</yuansong.tools.jtools.secret>
   </properties>
   
   <repositories>
@@ -82,6 +82,16 @@
             <groupId>com.yuansong.tools</groupId>
             <artifactId>yuansong-jtools-secret</artifactId>
             <version>${yuansong.tools.jtools.secret}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.yuansong.tools</groupId>
+                    <artifactId>yuansong-jtools-common</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 		<!-- 自定义 End -->
     </dependencies>

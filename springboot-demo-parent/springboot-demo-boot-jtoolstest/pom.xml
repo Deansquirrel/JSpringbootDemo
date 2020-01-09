@@ -48,6 +48,10 @@
         <!-- 自定义 Begin -->
         <dependency>
             <groupId>com.yuansong.tools</groupId>
+            <artifactId>yuansong-jtools-common</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.yuansong.tools</groupId>
             <artifactId>yuansong-jtools-secret</artifactId>
         </dependency>
         <!-- 自定义 End -->
