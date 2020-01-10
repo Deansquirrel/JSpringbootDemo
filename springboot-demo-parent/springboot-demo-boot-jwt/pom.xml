@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.yuansong.demo</groupId>
+    <artifactId>springboot-demo-parent</artifactId>
+    <version>${appversion}</version>
+  </parent>
+  <artifactId>springboot-demo-boot-jwt</artifactId>
+  <name>SpringbootDemoBootJwt</name>
+  <description>Springboot Demo Boot Jwt</description>
+  
+  <properties>
+      <main.basedir>${basedir}/../..</main.basedir>
+      <java.version>1.8</java.version>
+  </properties>
+  
+  <dependencies>
+    <!-- SpringBoot Begin -->    
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-test</artifactId>
+        <scope>test</scope>
+        <exclusions>
+            <exclusion>
+                <groupId>org.junit.vintage</groupId>
+                <artifactId>junit-vintage-engine</artifactId>
+            </exclusion>
+        </exclusions>
+    </dependency>
+    <dependency>
+        <groupId>com.google.code.gson</groupId>
+        <artifactId>gson</artifactId>
+    </dependency>        
+    <!-- SpringBoot End -->
+    <!-- Model Begin -->
+    <dependency>
+        <groupId>com.yuansong.demo</groupId>
+        <artifactId>springboot-demo-common-swagger</artifactId>
+        <version>${appversion}</version>
+    </dependency>
+    <!-- Model End --> 
+    <!-- 自定义 Begin -->
+    <!-- 自定义 End -->
+    <!-- 第三方 JWT Begin -->
+    <dependency>
+        <groupId>com.auth0</groupId>
+        <artifactId>java-jwt</artifactId>
+        <version>3.2.0</version>
+    </dependency>
+    <dependency>
+        <groupId>io.jsonwebtoken</groupId>
+        <artifactId>jjwt</artifactId>
+        <version>0.7.0</version>
+    </dependency>
+    <!-- 第三方 JWT End -->
+  </dependencies>
+</project>

@@ -20,6 +20,8 @@
     <module>springboot-demo-common-config</module>
     <module>springboot-demo-boot-jtoolstest</module>
     <module>springboot-demo-common-swagger</module>
+    <module>springboot-demo-boot-starts</module>
+    <module>springboot-demo-boot-jwt</module>
   </modules>
   
   <build>
