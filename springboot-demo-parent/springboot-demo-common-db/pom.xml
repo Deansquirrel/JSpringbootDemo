@@ -1,0 +1,45 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.yuansong.demo</groupId>
+    <artifactId>springboot-demo-parent</artifactId>
+    <version>${appversion}</version>
+  </parent>
+  <artifactId>springboot-demo-common-db</artifactId>
+  <packaging>jar</packaging>
+  
+  <dependencies>
+    <!-- SpringBoot Begin -->
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter</artifactId>
+     </dependency>
+     <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-configuration-processor</artifactId>
+        <optional>true</optional>
+    </dependency>
+    <!-- SpringBoot End -->
+    <!-- Model Begin -->
+    <dependency>
+        <groupId>com.yuansong.demo</groupId>
+        <artifactId>springboot-demo-common-config</artifactId>
+        <version>${appversion}</version>
+    </dependency>
+    <!-- Model End -->
+    <!-- MSSQL Begin -->
+    <dependency>
+        <groupId>com.alibaba</groupId>
+        <artifactId>druid-spring-boot-starter</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>com.microsoft</groupId>
+        <artifactId>sqljdbc4</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-jdbc</artifactId>
+     </dependency>
+    <!-- MSSQL End -->
+  </dependencies>
+</project>

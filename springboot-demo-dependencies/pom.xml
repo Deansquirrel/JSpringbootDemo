@@ -12,6 +12,7 @@
   
   <properties>
     <main.basedir>${basedir}/..</main.basedir>
+    <com.microsoft.sqljdbc4>3.0</com.microsoft.sqljdbc4>
     <yuansong.tools.jtools.common>0.0.6</yuansong.tools.jtools.common>
 	<yuansong.tools.jtools.secret>0.0.2</yuansong.tools.jtools.secret>
   </properties>
@@ -66,6 +67,11 @@
         </dependency>
         <!-- Swagger End -->
         <!-- 第三方 数据库 Begin -->
+        <dependency>
+	        <groupId>com.microsoft</groupId>
+	        <artifactId>sqljdbc4</artifactId>
+	        <version>${com.microsoft.sqljdbc4}</version>
+	    </dependency>
         <dependency>
             <groupId>com.alibaba</groupId>
             <artifactId>druid-spring-boot-starter</artifactId>
