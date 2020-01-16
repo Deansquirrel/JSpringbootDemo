@@ -36,7 +36,7 @@ public class DataSourceHelper {
 		ds.setMinIdle(config.getMinConn());
 		ds.setInitialSize(config.getMinConn());
 		if(config.getMaxConn() == null || config.getMaxConn() < 1) {
-			config.setMaxConn(1);
+			config.setMaxConn(30);
 		}
 		ds.setMaxActive(config.getMaxConn());
 		if(config.getMaxWait() == null || config.getMaxWait() < 1000) {

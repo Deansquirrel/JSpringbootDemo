@@ -22,7 +22,7 @@ public class BootDTV5CoreTestApplication {
                 "                               ) . . (\n" +
                 "-------------------------,--._(___Y___)_,--.---------------------------\n" +
                 "                         `--'           `--'\n" +
-                "                      JToolsTest 启动成功                         \n" +
+                "                   DTV5CoreTest 启动成功                         \n" +
                 "\n" +
                 " 启动耗时: " + (endTime - beginTime) + "毫秒 \n" +
 //                " 端口: 7060 \n" +

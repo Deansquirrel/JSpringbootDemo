@@ -1,56 +1,166 @@
-package com.yuansong.demo.dtv5core.yuan;
+package com.yuansong.demo.dtv5core;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-public interface DTV5CoreYuan {
+import org.springframework.jdbc.core.JdbcTemplate;
+
+import com.yuansong.demo.dtv5core.dto.TongdInfoDto;
+
+public class DTV5CoreYuan {
+	
+//	private static final Logger logger = LoggerFactory.getLogger(DTV5CoreYuan.class);
+	
+	private JdbcTemplate jdbcTemplate = null;
+	
+	public DTV5CoreYuan(JdbcTemplate jdbcTemplate) {
+		this.jdbcTemplate = jdbcTemplate;
+	}
+	
+	/**
+	 * 返回通道库信息
+	 * 
+	 * @return
+	 */
+	public TongdInfoDto GetTongdInfo() throws Exception {
+		String tongdChanCode = this.jdbcTemplate.queryForObject("select dypvalue from vw_dtv5yuanparams_callback where dypkey = 'tongdchancode'", String.class);
+		if(tongdChanCode == null || tongdChanCode.trim() == "") {
+			throw new Exception("tongdchancode is empty");
+		}
+		tongdChanCode = tongdChanCode.trim();
+		Integer tongdCount = this.jdbcTemplate.queryForObject("select dypvalue from vw_dtv5yuanparams_callback where dypkey = 'tongdcount'", Integer.class);
+		if(tongdCount == null || tongdCount <= 0) {
+			tongdCount = 0;
+		}
+		Map<Integer, String> list = new HashMap<Integer, String>();
+		for(int i = 0; i < tongdCount; i++) {
+			String key = "tongd:" + String.valueOf(i);
+			String tongdConn = this.jdbcTemplate.queryForObject("select dypvalue from vw_dtv5yuanparams_callback where dypkey = ?", String.class, key);
+			if(tongdConn == null || tongdConn.trim() == "") {
+				throw new Exception("get tongd[" + key + "] conn err, tongdCount: " + String.valueOf(tongdCount));
+			}
+			list.put(i, tongdConn.trim());
+		}
+		TongdInfoDto dto = new TongdInfoDto();
+		dto.setTongdChanCode(tongdChanCode);
+		dto.setTongdCount(tongdCount);
+		dto.setTongdConn(list);
+		return dto;
+	}
 
 	/**
 	 * 获取一个事件存根号
 	 * 
 	 * @return
+	 * @throws Exception 
 	 */
-	public String GetNewShijCungno();
+	public String GetNewShijCungno() throws Exception {
+		this.jdbcTemplate.batchUpdate("CREATE TABLE [#cungno]([cungno] [varchar](20) primary key)");
+		this.jdbcTemplate.batchUpdate("exec [pr_dtv5yuancungno_shenq]");
+		List<String> list = this.jdbcTemplate.queryForList("select [cungno] from [#cungno]",String.class);
+		this.jdbcTemplate.batchUpdate("drop table [#cungno]");
+		if(list.size() > 0) {
+			return list.get(0);
+		} else {
+			throw new Exception("未能获取到事件存根号");
+		}
+	};
+	
+//	/**
+//	 * 请求发送操作Offer
+//	 * @param pmChan 传播模式
+//	 * @param pmMubXitLeix 目标系统类型
+//	 * @param pmMubXitID 目标系统ID
+//	 * @param atom 传出原子操作。1-编队，2-发送
+//	 * @param yuany 原因
+//	 * @throws Exception
+//	 */
+//	public void RequestSendOffer(String pmChan, String pmMubXitLeix, long pmMubXitID, int atom, String yuany) throws Exception {
+//		this.jdbcTemplate.update("CREATE TABLE [#svrtime]([svrtime] datetime)");
+//		this.jdbcTemplate.update("exec [pr_dtv5yuanatomlock_shenq] ?, ?, ?, ?, ?", pmChan, pmMubXitLeix, pmMubXitID, atom, yuany);
+//		this.jdbcTemplate.update("drop table [#svrtime]");
+//	};
 	
 	/**
 	 * 请求发送操作Offer
+	 * 
+	 * @param conn 数据库连接对象（保持单链接使用）
 	 * @param pmChan 传播模式
 	 * @param pmMubXitLeix 目标系统类型
 	 * @param pmMubXitID 目标系统ID
+	 * @param atom 传出原子操作。1-编队，2-发送
+	 * @param yuany 原因
 	 * @throws Exception
 	 */
-	public void RequestSendOffer(String pmChan, String pmMubXitLeix, long pmMubXitID) throws Exception;
+	public void RequestSendOffer(Connection conn, String pmChan, String pmMubXitLeix, long pmMubXitID, int atom, String yuany) throws Exception {
+		String sql = ""
+				+ "CREATE TABLE [#svrtime]([svrtime] datetime) "
+				+ "exec [pr_dtv5yuanatomlock_shenq] ?, ?, ?, ?, ? "
+				+ "drop table [#svrtime]";
+		PreparedStatement ps = conn.prepareStatement(sql);
+		ps.setString(1, pmChan);
+		ps.setString(2, pmMubXitLeix);
+		ps.setLong(3, pmMubXitID);
+		ps.setInt(4, atom);
+		ps.setString(5, yuany);
+		ps.execute();
+//		this.jdbcTemplate.update("CREATE TABLE [#svrtime]([svrtime] datetime)");
+//		this.jdbcTemplate.update("exec [pr_dtv5yuanatomlock_shenq] ?, ?, ?, ?, ?", pmChan, pmMubXitLeix, pmMubXitID, atom, yuany);
+//		this.jdbcTemplate.update("drop table [#svrtime]");
+	};
 
 	/**
 	 * 释放发送操作Offer
 	 * @param pmChan 传播模式
 	 * @param pmMubXitLeix 目标系统类型
 	 * @param pmMubXitID 目标系统ID
+	 * @param atom 传出原子操作。1-编队，2-发送
 	 * @throws Exception
 	 */
-	public void ReleaseSendOffer(String pmChan, String pmMubXitLeix, long pmMubXitID) throws Exception;
+	public void ReleaseSendOffer(Connection conn, String pmChan, String pmMubXitLeix, long pmMubXitID, int atom) throws Exception {
+		String sql = ""
+				+ "CREATE TABLE [#svrtime]([svrtime] datetime) "
+				+ "exec [pr_dtv5yuanatomlock_shif] ?, ?, ?, ? "
+				+ "drop table [#svrtime]";
+		PreparedStatement ps = conn.prepareStatement(sql);
+		ps.setString(1, pmChan);
+		ps.setString(2, pmMubXitLeix);
+		ps.setLong(3, pmMubXitID);
+		ps.setInt(4, atom);
+		ps.execute();
+//		this.jdbcTemplate.update("CREATE TABLE [#svrtime]([svrtime] datetime)");
+//		this.jdbcTemplate.update("exec [pr_dtv5yuanatomlock_shif] ?, ?, ?, ?", pmChan, pmMubXitLeix, pmMubXitID, atom);
+//		this.jdbcTemplate.update("drop table [#svrtime]");
+	};
 	
 	/**
 	 * 编队指定传播路径的新事件
+	 * 
 	 * @param pmChan 传播模式
 	 * @param pmMubXitLeix 目标系统类型
 	 * @param pmMubXitID 目标系统ID
 	 * @param pmJiezhShijCungno 本次操作的截止事件存根号。如果不存在，则所有。
+	 * @throws Exception 
 	 */
-	public void BiandShij(String pmChan, String pmMubXitLeix, long pmMubXitID, String pmJiezhShijCungno);
+	public void BiandShij(String pmChan, String pmMubXitLeix, long pmMubXitID, String pmJiezhShijCungno) throws Exception {
+		this.jdbcTemplate.update("exec [pr_dtv5yuanluj_biandshij] ?, ?, ?, ?", pmChan, pmMubXitLeix, pmMubXitID, pmJiezhShijCungno);
+	};
 	
 	/**
-	 * 获取DTCH传出目标路径清单
-	 * [待修改] private 返回 Collection
-	 * 返回：包含路径清单的一个记录集。字段如下
-	 * 	yuanxitleix nvarchar(255)
-	 * 	yuanxitid int
-	 * chan varchar(20)
-	 * mubxitleix nvarchar(255)
-	 * mubxitid int
+	 * 编队指定传播路径的所有新事件
 	 * 
-	 * @param pmTongdIndex
+	 * @param pmChan 传播模式
+	 * @param pmMubXitLeix 目标系统类型
+	 * @param pmMubXitID 目标系统ID
+	 * @throws Exception 
 	 */
-	public void GetDTCHMubList(long pmTongdIndex);
+	public void BiandShij(String pmChan, String pmMubXitLeix, long pmMubXitID) throws Exception {
+		this.BiandShij(pmChan, pmMubXitLeix, pmMubXitID, "");
+	};
 	
 	/**
 	 * DTCH方式发送指定传播路径的已编队事件
@@ -74,7 +184,9 @@ public interface DTV5CoreYuan {
 	 * @param pmMubXitID 目标系统ID
 	 * @param pmTongdIndex 通道库索引
 	 */
-	public void SendOnDTCH(String pmChan, String pmMubXitLeix, long pmMubXitID, long pmTongdIndex);
+	public void SendOnDTCH(String pmChan, String pmMubXitLeix, long pmMubXitID, long pmTongdIndex) {
+		
+	};
 	
 	/**
 	 * 读取当前一批待传播数据（事件+消息，单批有限量）
@@ -85,7 +197,9 @@ public interface DTV5CoreYuan {
 	 * @param pmMubXitID
 	 * @throws Exception
 	 */
-	void ReadPreSendBatch(String pmChan, String pmMubXitLeix, long pmMubXitID) throws Exception; 
+	void ReadPreSendBatch(String pmChan, String pmMubXitLeix, long pmMubXitID) throws Exception {
+		
+	}; 
 	
 	/**
 	 * 标记成功发送
@@ -98,7 +212,9 @@ public interface DTV5CoreYuan {
 	 * @param pmShijCungno 发送成功的传播编队号对应的事件存根号
 	 * @param pmFasTime 发送时间(String * 23,yyyy-MM-dd Hh:Nn:Ss.mmm)
 	 */
-	void SetSendSuccess(String pmChan, String pmMubXitLeix, long pmMubXitID, String pmChuanbSN, String pmShijCungno, String pmFasTime);
+	private void SetSendSuccess(String pmChan, String pmMubXitLeix, long pmMubXitID, String pmChuanbSN, String pmShijCungno, String pmFasTime) {
+		
+	};
 	
 	/**
 	 * 重设成功传播状态sn
@@ -110,7 +226,9 @@ public interface DTV5CoreYuan {
 	 * @param pmChuanbSN 目标系统成功恢复的最后传播SN
 	 * @param pmShijCungno 目标系统成功恢复的最后传播SN对应的事件存根号
 	 */
-	void ResetSendSuccess(String pmChan, String pmMubXitLeix, long pmMubXitID, String pmChuanbSN, String pmShijCungno);
+	private void ResetSendSuccess(String pmChan, String pmMubXitLeix, long pmMubXitID, String pmChuanbSN, String pmShijCungno) {
+		
+	};
 	
 	/**
 	 * 提交单个事件到目标端
@@ -122,7 +240,9 @@ public interface DTV5CoreYuan {
 	 * @param pmXiaoxRs 包含当前需要提交的事件的消息清单
 	 * @param pmFasTime 发送时间(String * 23,yyyy-MM-dd Hh:Nn:Ss.mmm)
 	 */
-	void SubmitXiaoxPackTongd(Collection<?> pmShijRs, Collection<?> pmXiaoxRs, String pmFasTime); 
+	private void SubmitXiaoxPackTongd(Collection<?> pmShijRs, Collection<?> pmXiaoxRs, String pmFasTime) {
+		
+	}; 
 	
 	/**
 	 * 在通道申请一个指定的DTCH发送操作锁
@@ -133,7 +253,9 @@ public interface DTV5CoreYuan {
 	 * @param pmMubXitID
 	 * @param pmLocalTime
 	 */
-	void RequestSendOfferTongdDTCH(String pmChan, String pmMubXitLeix, long pmMubXitID, String pmLocalTime);
+	private void RequestSendOfferTongdDTCH(String pmChan, String pmMubXitLeix, long pmMubXitID, String pmLocalTime) {
+		
+	};
 	
 	/**
 	 * 在通道释放一个指定的DTCH发送操作锁
@@ -143,7 +265,9 @@ public interface DTV5CoreYuan {
 	 * @param pmMubXitLeix
 	 * @param pmMubXitID
 	 */
-	void ReleaseSendOfferTongdDTCH(String pmChan, String pmMubXitLeix, long pmMubXitID);
+	private void ReleaseSendOfferTongdDTCH(String pmChan, String pmMubXitLeix, long pmMubXitID) {
+		
+	};
 	
 //	'连接指定索引值的DTCH通道数据库
 //	'输入：

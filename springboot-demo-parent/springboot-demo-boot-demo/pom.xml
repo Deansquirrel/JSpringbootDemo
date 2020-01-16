@@ -38,11 +38,6 @@
         <artifactId>springboot-demo-common-swagger</artifactId>
         <version>${appversion}</version>
     </dependency>
-    <dependency>
-        <groupId>com.yuansong.demo</groupId>
-        <artifactId>springboot-demo-common-db</artifactId>
-        <version>${appversion}</version>
-    </dependency>
     <!-- Model End --> 
     <!-- 自定义 Begin -->
     <!-- 自定义 End -->

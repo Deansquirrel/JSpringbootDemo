@@ -6,14 +6,18 @@
     <version>${appversion}</version>
   </parent>
   <artifactId>springboot-demo-common-config</artifactId>
-  <packaging>jar</packaging>
   
+  <properties>
+    <java.version>1.8</java.version>
+    <main.basedir>$[basedir}/../..</main.basedir>
+  </properties>
   
   <dependencies>
     <!-- SpringBoot Begin -->
     <dependency>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter</artifactId>
+        <version>${springversion}</version>
      </dependency>
      <dependency>
         <groupId>org.springframework.boot</groupId>

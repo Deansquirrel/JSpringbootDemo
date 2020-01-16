@@ -1,7 +1,9 @@
 package com.yuansong.demo.common.db.dynamic;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import javax.sql.DataSource;
 
@@ -15,8 +17,6 @@ public class DynamicRoutingDataSource extends AbstractRoutingDataSource {
 	
 	private DynamicDataSourceContextHolder contextHolder = null;
 	private Map<Object, Object> targetDataSources = null;
-	
-	private boolean busy = false;
 	
 	private DynamicRoutingDataSource() {}
 	
@@ -49,9 +49,9 @@ public class DynamicRoutingDataSource extends AbstractRoutingDataSource {
 	
 	public synchronized void addDataSource(String key, DataSource dataSource) {
 		this.targetDataSources.put(key, dataSource);
-		if(this.size() == 1) {
-			this.setDefaultTargetDataSource(dataSource);
-		}
+//		if(this.size() == 1) {
+//			this.setDefaultTargetDataSource(dataSource);
+//		}
 		this.afterPropertiesSet();
 		logger.debug("datasource {} has been added", dataSource);
 	}
@@ -64,20 +64,25 @@ public class DynamicRoutingDataSource extends AbstractRoutingDataSource {
 	}
 	
 	public synchronized void setDataSourceKey(String key) {
-		if(this.busy) {
-			throw new RuntimeException("can not change datasource when busy");
-		} else {
-			this.busy = true;			
-		}
 		this.contextHolder.setDataSourceKey(key);
 	}
-
-	public boolean isBusy() {
-		return busy;
-	}
 	
-	public void release() {
-		this.busy = false;
+	public synchronized void clearDataSourceKey() {
 		this.contextHolder.clearDataSourceKey();
 	}
+	
+	public Set<String> keySet() {
+		Set<String> result = new HashSet<String>();
+		for(Object key : this.targetDataSources.keySet()) {
+			result.add(String.valueOf(key));
+		}
+		return result;
+	}
+	
+	public synchronized void clear() {
+		for(String key : this.keySet()) {
+			this.removeDataSource(key);
+		}
+	}
+	
 }

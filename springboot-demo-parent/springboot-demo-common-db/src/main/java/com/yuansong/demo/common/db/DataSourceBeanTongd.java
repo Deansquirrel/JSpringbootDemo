@@ -26,13 +26,23 @@ public class DataSourceBeanTongd {
 	}
 	
 	@Bean(name="tongdJdbcTemplate")
-	public JdbcTemplate jdbcTemplateSecond(@Qualifier("tongdDynamicRoutingDataSource") DataSource ds) {
-		return new JdbcTemplate(ds);
+	public JdbcTemplate tongdJdbcTemplate(@Qualifier("tongdDynamicRoutingDataSource") DataSource ds) {
+		if(ds != null) {
+			return new JdbcTemplate(ds);			
+		} else {
+			return null;
+		}
+		
 	}
 	
-	@Bean(name="tongdTxManagerSecond")
-	public PlatformTransactionManager txManagerSecond(@Qualifier("tongdDynamicRoutingDataSource") DataSource ds) {
-		return new DataSourceTransactionManager(ds);
+	@Bean(name="tongdTxManager")
+	public PlatformTransactionManager tongdTxManager(@Qualifier("tongdDynamicRoutingDataSource") DataSource ds) {
+		if(ds != null) {
+			return new DataSourceTransactionManager(ds);			
+		} else {
+			return null;
+		}
+		
 	}
 	
 

@@ -16,15 +16,15 @@ public class DynamicDataSourceContextHolder {
 	
 	public void setDataSourceKey(String key) {
 		logger.debug("setDataSourceKey " + key);
-		contextHolder.set(key);
+		this.contextHolder.set(key);
 	}
 	
 	public String getDataSourceKey() {
-		return contextHolder.get();
+		return this.contextHolder.get();
 	}
 	
 	public void clearDataSourceKey() {
-		contextHolder.remove();
+		this.contextHolder.remove();
 	}
 
 }

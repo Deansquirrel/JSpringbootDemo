@@ -16,7 +16,7 @@ server:
     max-threads: 500
     uri-encoding: utf-8
 spring:
-  datasource:    url: jdbc:sqlserver://192.168.5.1:2004;DatabaseName=master
+  datasource:    url: jdbc:sqlserver://192.168.10.155:1433;DatabaseName=Z9公司_cs
     username: sa
     password:   servlet:    multipart:      enabled: true
       file-size-threshold: 0
