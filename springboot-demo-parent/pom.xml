@@ -25,6 +25,7 @@
     <module>springboot-demo-boot-jwt</module>
     <module>springboot-demo-boot-demo</module>
     <module>springboot-demo-boot-dtv5coretest</module>
-    
+
+    <module>springboot-demo-boot-sqlite</module>
   </modules>
 </project>

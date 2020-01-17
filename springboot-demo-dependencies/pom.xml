@@ -12,8 +12,11 @@
   
   <properties>
     <main.basedir>${basedir}/..</main.basedir>
+    <org.mybatis.spring.boot.starter>2.1.1</org.mybatis.spring.boot.starter>
+    <com.alibaba.druid.starter>1.1.21</com.alibaba.druid.starter>
     <com.microsoft.sqljdbc4>3.0</com.microsoft.sqljdbc4>
-    <yuansong.tools.jtools.common>0.0.6</yuansong.tools.jtools.common>
+    <org.xerial.sqlite.jdbc>3.28.0</org.xerial.sqlite.jdbc>
+    <yuansong.tools.jtools.common>0.0.7</yuansong.tools.jtools.common>
 	<yuansong.tools.jtools.secret>0.0.2</yuansong.tools.jtools.secret>
   </properties>
   
@@ -72,10 +75,20 @@
 	        <artifactId>sqljdbc4</artifactId>
 	        <version>${com.microsoft.sqljdbc4}</version>
 	    </dependency>
+	    <dependency>
+	       <groupId>org.xerial</groupId>
+	       <artifactId>sqlite-jdbc</artifactId>
+	       <version>${org.xerial.sqlite.jdbc}</version>
+	    </dependency>
+	    <dependency>
+            <groupId>org.mybatis.spring.boot</groupId>
+            <artifactId>mybatis-spring-boot-starter</artifactId>
+            <version>${org.mybatis.spring.boot.starter}</version>         
+        </dependency>
         <dependency>
             <groupId>com.alibaba</groupId>
             <artifactId>druid-spring-boot-starter</artifactId>
-            <version>1.1.21</version>
+            <version>${com.alibaba.druid.starter}</version>
         </dependency>
         <!-- 第三方 数据库 End -->
 		<!-- 自定义 Begin -->
