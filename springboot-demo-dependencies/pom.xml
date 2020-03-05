@@ -113,6 +113,19 @@
             </exclusions>
         </dependency>
 		<!-- 自定义 End -->
+		<!-- Excel POI Begnin -->
+		<dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi</artifactId>
+            <version>3.17</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml</artifactId>
+            <version>3.17</version>
+        </dependency>
+		<!-- Excel POI End -->
     </dependencies>
   </dependencyManagement>
   

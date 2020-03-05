@@ -20,12 +20,10 @@
     <module>springboot-demo-common-db</module>
     <module>springboot-demo-common-config</module>
     <module>springboot-demo-common-swagger</module>
-    <module>springboot-demo-dtv5core</module>
     <module>springboot-demo-boot-jtoolstest</module>
     <module>springboot-demo-boot-jwt</module>
     <module>springboot-demo-boot-demo</module>
-    <module>springboot-demo-boot-dtv5coretest</module>
-
     <module>springboot-demo-boot-sqlite</module>
+    <module>springboot-demo-boot-excel</module>
   </modules>
 </project>
