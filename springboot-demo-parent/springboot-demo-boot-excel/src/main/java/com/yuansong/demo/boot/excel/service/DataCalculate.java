@@ -8,6 +8,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
 import com.yuansong.demo.boot.excel.DO.CountResource;
@@ -20,7 +21,7 @@ import com.yuansong.demo.boot.excel.DTO.JKGD;
 import com.yuansong.demo.boot.excel.DTO.JKGJ;
 
 @Component
-public class DataCalculate {
+public class DataCalculate implements  CommandLineRunner {
 	
 	private static final Logger logger = LoggerFactory.getLogger(DataCalculate.class);
 	
@@ -33,7 +34,25 @@ public class DataCalculate {
 	@Autowired
 	private DataWriter dataWriter;
 	
-	public void subRun() {
+	@Override
+	public void run(String... args) throws Exception {
+		long beginTime = System.currentTimeMillis();
+		this.subRun();
+		long endTime = System.currentTimeMillis();
+		
+		System.out.println("\n" +
+                "运行耗时: " + (endTime - beginTime) + "毫秒 \n");
+		
+		try {
+			System.in.read();			
+		} catch (Exception e) {
+			return;
+		}	
+		
+	}
+	
+	private void subRun() {
+		
 		long begTime = -1L;
 		long endTime = -1L;
 		List<CSGJ> listCSGJ = null;
@@ -341,4 +360,5 @@ public class DataCalculate {
 		}
 		return result;
 	}
+	
 }
