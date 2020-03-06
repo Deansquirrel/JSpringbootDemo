@@ -1,28 +1,39 @@
 package com.yuansong.demo.boot.excel.DO;
 
-public class CountResult {
+import java.util.Map;
+
+public class CountResult implements Comparable<CountResult> {
 	
 	//行标签
 	private String hbq;
-	private String ds;
-	private Integer times;
+	private Map<String, Integer> detail;
+	private Integer total;
 	public String getHbq() {
 		return hbq;
 	}
 	public void setHbq(String hbq) {
 		this.hbq = hbq;
 	}
-	public String getDs() {
-		return ds;
+	public Map<String, Integer> getDetail() {
+		return detail;
 	}
-	public void setDs(String ds) {
-		this.ds = ds;
+	public void setDetail(Map<String, Integer> detail) {
+		this.detail = detail;
 	}
-	public Integer getTimes() {
-		return times;
+	public Integer getTotal() {
+		return total;
 	}
-	public void setTimes(Integer times) {
-		this.times = times;
+	public void setTotal(Integer total) {
+		this.total = total;
+	}
+	
+	@Override
+	public int compareTo(CountResult o) {
+		if(this.getTotal() - o.getTotal() == 0) {
+			return this.getHbq().compareTo(o.getHbq());
+		} else {
+			return o.getTotal().compareTo(this.getTotal());
+		}
 	}
 	
 	

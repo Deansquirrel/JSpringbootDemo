@@ -324,39 +324,37 @@ public class DataCalculate implements  CommandLineRunner {
 	}
 	
 	private List<CountResult> getResultList(List<CountResource> list) {
-		Map<String, Map<String, Integer>> data = new HashMap<String, Map<String, Integer>>();
-		Map<String, Integer> dsList = null;
+		Map<String, CountResult> data = new HashMap<String, CountResult>();
+		
+		CountResult  r = null;
 		for(CountResource res : list) {
-			dsList = null;
 			if(data.containsKey(res.getGjbt())) {
 				//告警标题已存在
-				dsList = data.get(res.getGjbt());
-				if(dsList.containsKey(res.getDs())) {
+				r = data.get(res.getGjbt());
+				Map<String, Integer> lDetail = r.getDetail();
+				if(r.getDetail().containsKey(res.getDs())) {
 					//地市已存在
-					dsList.put(res.getDs(), dsList.get(res.getDs()) + 1);
+					lDetail.put(res.getDs(), lDetail.get(res.getDs()) + 1);
 				} else {
 					//地市不存在
-					dsList.put(res.getDs(), 1);
+					lDetail.put(res.getDs(), 1);
 				}
-				data.put(res.getGjbt(), dsList);
+				r.setDetail(lDetail);
+				r.setTotal(r.getTotal() + 1);
 			} else {
 				//告警标题不存在
-				dsList = new HashMap<String, Integer>();
-				dsList.put(res.getDs(), 1);
-				data.put(res.getGjbt(), dsList);
+				r = new CountResult();
+				r.setHbq(res.getGjbt());
+				Map<String, Integer> lDetail = new HashMap<String, Integer>();
+				lDetail.put(res.getDs(),1);
+				r.setDetail(lDetail);
+				r.setTotal(1);
 			}
+			data.put(r.getHbq(), r);
 		}
-		
 		List<CountResult> result = new ArrayList<CountResult>();
-		CountResult r = null;
-		for(String gjbt : data.keySet()) {
-			for (String ds : data.get(gjbt).keySet()) {
-				 r = new CountResult();
-				 r.setHbq(gjbt);
-				 r.setDs(ds);
-				 r.setTimes(data.get(gjbt).get(ds));
-				 result.add(r);
-			}
+		for(CountResult cr : data.values()) {
+			result.add(cr);
 		}
 		return result;
 	}

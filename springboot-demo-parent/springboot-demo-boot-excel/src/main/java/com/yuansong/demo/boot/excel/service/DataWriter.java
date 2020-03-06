@@ -2,12 +2,13 @@ package com.yuansong.demo.boot.excel.service;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.poi.ss.usermodel.BorderStyle;
+import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.HorizontalAlignment;
 import org.apache.poi.xssf.usermodel.XSSFCellStyle;
@@ -75,39 +76,34 @@ public class DataWriter {
 		}
 		XSSFRow row = null;
 		List<String> dsList = this.getDsList();
-		Map<String, Integer> hbqRel = new HashMap<String, Integer>();
-		for(int i = 0; i < hbqList.size(); i++) {
+		CountResult cr = null;
+		
+		Collections.sort(list);
+		
+		int dIndex = -1;
+		for(int i=0;i < list.size(); i++) {
+			cr = list.get(i);
 			row = sheet.createRow(i + 1);
-			row.createCell(0).setCellStyle(cellStyle);
-			row.getCell(0).setCellValue(hbqList.get(i));
-			hbqRel.put(hbqList.get(i), i + 1);
-			for(int j = 1; j < dsList.size() + 1; j++) {
-				row.createCell(j).setCellStyle(cellStyle);
+			for(int j = 0; j <= dsList.size(); j++) {
+				row.createCell(j).setCellStyle(cellStyle);	
 			}
-		}
-		for(CountResult r : list) {
-			row = sheet.getRow(hbqRel.get(r.getHbq()));
-			if(dsList.indexOf(r.getDs()) >= 0) {
-				row.getCell(dsList.indexOf(r.getDs()) + 1).setCellValue(String.valueOf(r.getTimes()));				
-			} else {
-				this.msg.print(r.getHbq() + " " + r.getDs() + " " + String.valueOf(r.getTimes()));
+			row.getCell(0).setCellValue(cr.getHbq());
+			for(String ds : cr.getDetail().keySet()) {
+				if(dsList.indexOf(ds) > -1) {
+					dIndex = dsList.indexOf(ds) + 1;
+					row.getCell(dIndex).setCellValue(cr.getDetail().get(ds));
+				} else {
+					this.msg.print(cr.getHbq() + " " + ds + " " + String.valueOf(cr.getDetail().get(ds)));
+				}
 			}
-		}
-		//总计数据
-		Map<String, Integer> total = new HashMap<String, Integer>();
-		for(CountResult r : list) {
-			if(total.containsKey(r.getHbq())) {
-				total.put(r.getHbq(), total.get(r.getHbq()) + r.getTimes());
-			} else {
-				total.put(r.getHbq(), r.getTimes());
-			}
-		}
-		for(String k : total.keySet()) {
-			row = sheet.getRow(hbqRel.get(k));
-			row.getCell(dsList.size()).setCellValue(String.valueOf(total.get(k)));
+			row.getCell(dsList.size()).setCellValue(cr.getTotal());
 		}
 		
-		
+		try {
+			this.setAutoSizeColumn(sheet, 0);
+		} catch(Exception e) {
+			
+		}	
 	}
 	
 	private void sheetInit(XSSFSheet sheet, CellStyle cellStyle) {
@@ -163,6 +159,23 @@ public class DataWriter {
 	
 	public String getOutputPath() throws Exception {
 		return ResourceUtils.getURL("output").getPath();
+	}
+	
+	private void setAutoSizeColumn(XSSFSheet sheet, int col) throws UnsupportedEncodingException {
+		sheet.autoSizeColumn(col);//只支持英文和数字
+		int columnWidth = sheet.getColumnWidth(col) / 256;
+		int intlength = -1;
+		for (int row = 0; row <= sheet.getLastRowNum(); ++row) {
+			Cell cell = sheet.getRow(row).getCell(col);//如果有合并单元格，就会有getCell()==null的情况，需要createCell();
+			if (cell == null) {
+				cell = sheet.getRow(row).createCell(col);
+			}
+	        intlength = cell.toString().getBytes("GBK").length;  
+	        if (columnWidth < intlength + 1) {  
+	        	columnWidth = intlength + 1;  
+	    	}
+		}
+		sheet.setColumnWidth(col, columnWidth * 256); //对中文列调整列宽
 	}
 
 }
