@@ -1,29 +1,39 @@
 package com.yuansong.demo.boot.excel.service;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
+import org.springframework.util.ResourceUtils;
 
 import com.yuansong.demo.boot.excel.DO.CountResource;
 import com.yuansong.demo.boot.excel.DO.CountResult;
-import com.yuansong.demo.boot.excel.DTO.CSGD;
-import com.yuansong.demo.boot.excel.DTO.CSGJ;
-import com.yuansong.demo.boot.excel.DTO.DHGD;
-import com.yuansong.demo.boot.excel.DTO.DHGJ;
-import com.yuansong.demo.boot.excel.DTO.JKGD;
-import com.yuansong.demo.boot.excel.DTO.JKGJ;
+import com.yuansong.demo.boot.excel.DTO.BaseData;
 
 @Component
 public class DataCalculate implements  CommandLineRunner {
 	
 	private static final Logger logger = LoggerFactory.getLogger(DataCalculate.class);
+	
+	private final String filePath = "data";
+	private final String fileName = "data.xlsx";
+	
+	private final String csSheetName = "传输";
+	private final String dhSheetName = "动环";
+	private final String jkSheetName = "家客";
+	
+	private final String titlePrefix = "级告警_《";
+	private final String titleSuffix = "》";
+	
+	private final String outputSheetSuffix = "每日工单分析";
 	
 	@Autowired
 	private Message msg;
@@ -33,11 +43,32 @@ public class DataCalculate implements  CommandLineRunner {
 	
 	@Autowired
 	private DataWriter dataWriter;
-	
+
 	@Override
 	public void run(String... args) throws Exception {
 		long beginTime = System.currentTimeMillis();
-		this.subRun();
+		XSSFWorkbook wb = null;
+		try {
+			wb = this.dataReader.getXSSFWorkbook(this.getFilePath());
+			if(wb == null) {
+				String errMsg ="未读取到Excel文件"; 
+				throw new Exception(errMsg);
+			}
+			this.subRun(wb, csSheetName, 0, 4);
+			this.subRun(wb, dhSheetName, 0, 4);
+			this.subRun(wb, jkSheetName, 0, 4);
+			this.saveFile(wb);
+		} catch (Exception e) {
+			this.msg.print(e.getMessage());
+		} finally {
+			if(wb != null) {
+				try {
+					wb.close();					
+				} catch (IOException e) {
+					//忽略文件关闭异常
+				}
+			}
+		}
 		long endTime = System.currentTimeMillis();
 		
 		System.out.println("\n" +
@@ -48,315 +79,151 @@ public class DataCalculate implements  CommandLineRunner {
 		} catch (Exception e) {
 			return;
 		}	
-		
 	}
 	
-	private void subRun() {
-		
+	private void subRun(XSSFWorkbook wb, String sheetName, int colIndex1, int colIndex2) throws Exception {
 		long begTime = -1L;
 		long endTime = -1L;
-		List<CSGJ> listCSGJ = null;
-		try {
-			this.msg.print("读取传输告警数据 开始");
-			begTime = System.currentTimeMillis();
-			listCSGJ = this.dataReader.getCSGJData();
-			endTime = System.currentTimeMillis();
-			this.msg.print("读取传输告警数据 完成");
-			this.msg.print("数据量 " + String.valueOf(listCSGJ.size()) + " 耗时 " + String.valueOf(endTime - begTime) + " 毫秒");
-		} catch (Exception e) {
-			logger.error(e.getMessage());
-			e.printStackTrace();
-			this.msg.print("读取传输告警数据时发生异常，" + e.getMessage());
-			return;
-		}
-		
-		List<CSGD> listCSGD = null;
-		try {
-			this.msg.print("读取传输工单数据 开始");
-			begTime = System.currentTimeMillis();
-			listCSGD = this.dataReader.getCSGDData();
-			endTime = System.currentTimeMillis();
-			this.msg.print("读取传输工单数据 完成");
-			this.msg.print("数据量 " + String.valueOf(listCSGD.size()) + " 耗时 " + String.valueOf(endTime - begTime) + " 毫秒");
-		} catch (Exception e) {
-			logger.error(e.getMessage());
-			e.printStackTrace();
-			this.msg.print("读取传输工单数据时发生异常，" + e.getMessage());
-			return;
-		}
-		
-		List<DHGJ> listDHGJ = null;
-		try {
-			this.msg.print("读取动环告警数据 开始");
-			begTime = System.currentTimeMillis();
-			listDHGJ = this.dataReader.getDHGJData();
-			endTime = System.currentTimeMillis();
-			this.msg.print("读取动环告警数据 完成");
-			this.msg.print("数据量 " + String.valueOf(listDHGJ.size()) + " 耗时 " + String.valueOf(endTime - begTime) + " 毫秒");
-		} catch (Exception e) {
-			logger.error(e.getMessage());
-			e.printStackTrace();
-			this.msg.print("读取动环告警数据时发生异常，" + e.getMessage());
-			return;
-		}
-		
-		List<DHGD> listDHGD = null;
-		try {
-			this.msg.print("读取动环工单数据 开始");
-			begTime = System.currentTimeMillis();
-			listDHGD = this.dataReader.getDHGDData();
-			endTime = System.currentTimeMillis();
-			this.msg.print("读取动环工单数据 完成");
-			this.msg.print("数据量 " + String.valueOf(listDHGD.size()) + " 耗时 " + String.valueOf(endTime - begTime) + " 毫秒");
-		} catch (Exception e) {
-			logger.error(e.getMessage());
-			e.printStackTrace();
-			this.msg.print("读取动环工单数据时发生异常，" + e.getMessage());
-			return;
-		}
-		
-		List<JKGJ> listJKGJ = null;
-		try {
-			this.msg.print("读取家客告警数据 开始");
-			begTime = System.currentTimeMillis();
-			listJKGJ = this.dataReader.getJKGJData();
-			endTime = System.currentTimeMillis();
-			this.msg.print("读取家客告警数据 完成");
-			this.msg.print("数据量 " + String.valueOf(listJKGJ.size()) + " 耗时 " + String.valueOf(endTime - begTime) + " 毫秒");
-		} catch (Exception e) {
-			logger.error(e.getMessage());
-			e.printStackTrace();
-			this.msg.print("读取家客告警数据时发生异常，" + e.getMessage());
-			return;
-		}
-		
-		List<JKGD> listJKGD = null;
-		try {
-			this.msg.print("读取家客工单数据 开始");
-			begTime = System.currentTimeMillis();
-			listJKGD = this.dataReader.getJKGDData();
-			endTime = System.currentTimeMillis();
-			this.msg.print("读取家客工单数据 完成");
-			this.msg.print("数据量 " + String.valueOf(listJKGD.size()) + " 耗时 " + String.valueOf(endTime - begTime) + " 毫秒");
-		} catch (Exception e) {
-			logger.error(e.getMessage());
-			e.printStackTrace();
-			this.msg.print("读取家客工单数据时发生异常，" + e.getMessage());
-			return;
-		}
-		
-		this.msg.print("计算传输数据 开始");
-		List<CountResource> csResult = null;
-		try {
-			begTime = System.currentTimeMillis();
-			csResult = this.getCSResourceList(listCSGD, listCSGJ);
-			endTime = System.currentTimeMillis();
-			this.msg.print("计算传输数据 完成 " + " 耗时 " + String.valueOf(endTime - begTime) + " 毫秒");
-		} catch (Exception e) {
-			logger.debug(e.getMessage());
-			e.printStackTrace();
-			this.msg.print("计算传输数据时发生异常，" + e.getMessage());
-			return;
-		}
-		
-		this.msg.print("计算动环数据 开始");
-		List<CountResource> dhResult = null;
-		try {
-			begTime = System.currentTimeMillis();
-			dhResult = this.getDHResourceList(listDHGD, listDHGJ);
-			endTime = System.currentTimeMillis();
-			this.msg.print("计算动环数据 完成 " + " 耗时 " + String.valueOf(endTime - begTime) + " 毫秒");
-		} catch (Exception e) {
-			logger.debug(e.getMessage());
-			e.printStackTrace();
-			this.msg.print("计算动环数据时发生异常，" + e.getMessage());
-			return;
-		}
-		
-		this.msg.print("计算家客数据 开始");
-		List<CountResource> jkResult = null;
-		try {
-			begTime = System.currentTimeMillis();
-			jkResult = this.getJKResourceList(listJKGD, listJKGJ);
-			endTime = System.currentTimeMillis();
-			this.msg.print("计算家客数据 完成 " + " 耗时 " + String.valueOf(endTime - begTime) + " 毫秒");
-		} catch (Exception e) {
-			logger.debug(e.getMessage());
-			e.printStackTrace();
-			this.msg.print("计算家客数据时发生异常，" + e.getMessage());
-			return;
-		}
-		
-		this.msg.print("保存数据 开始");
-		try {
-			begTime = System.currentTimeMillis();
-			String path = this.dataWriter.saveData(
-					this.getResultList(csResult),
-					this.getResultList(dhResult),
-					this.getResultList(jkResult));
-			endTime = System.currentTimeMillis();
-			this.msg.print("保存数据 完成 " + " 耗时 " + String.valueOf(endTime - begTime) + " 毫秒");
-			this.msg.print("输出文件：" + path);
-		} catch (Exception e) {
-			logger.debug(e.getMessage());
-			e.printStackTrace();
-			this.msg.print("保存数据时发生异常，" + e.getMessage());
-			return;
-		}
-	}
 
-	private List<CountResource> getCSResourceList(List<CSGD> gdList, List<CSGJ> gjList) throws Exception {
-		
-		Map<String, CSGD> gdMap = new HashMap<String, CSGD>();
-		for(CSGD gd : gdList) {
-			String key = gd.getGdbh();
-			if(key == null || "".equals(key.trim())) {
-				this.msg.print("WARN 传输工单 工单编号为空");
-			} else {
-				gdMap.put(key.trim(), gd);
-			}
+		List<BaseData> baseDataList = null;
+		try {
+			this.msg.print("读取" + sheetName + "数据 开始");
+			begTime = System.currentTimeMillis();
+			baseDataList = this.dataReader.getData(wb, sheetName, colIndex1, colIndex2);
+			endTime = System.currentTimeMillis();
+			this.msg.print("读取" + sheetName + "数据 完成"
+					+ " 数据量 " + String.valueOf(baseDataList.size()) + " 耗时 " + String.valueOf(endTime - begTime) + " 毫秒");
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			e.printStackTrace();
+			throw new Exception("读取" +sheetName + "数据时发生异常，" + e.getMessage());
 		}
-		Map<String, CSGJ> gjMap = new HashMap<String, CSGJ>();
-		for(CSGJ gj : gjList) {
-			String key = gj.getGdh();
-			if(key == null || "".equals(key.trim())) {
-				this.msg.print("WARN 传输告警 工单号为空");
-			} else {
-				gjMap.put(key.trim(), gj);
-			}
+		List<CountResource> resourceDataList = null;
+		try {
+			this.msg.print("计算" + sheetName + "数据 开始");
+			begTime = System.currentTimeMillis();
+			resourceDataList = this.getResource(baseDataList, wb, sheetName);
+			endTime = System.currentTimeMillis();
+			this.msg.print("计算" + sheetName + "数据 完成"
+					+ " " + "数据量 " + String.valueOf(resourceDataList.size()) + " 耗时 " + String.valueOf(endTime - begTime) + " 毫秒");
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			e.printStackTrace();
+			throw new Exception("计算" + sheetName + "数据时发生异常，" + e.getMessage());
 		}
+		List<CountResult> resultDataList = null;
+		try {
+			this.msg.print("汇总" + sheetName + "数据 开始");
+			begTime = System.currentTimeMillis();
+			resultDataList = this.getResult(resourceDataList);
+			endTime = System.currentTimeMillis();
+			this.msg.print("汇总" + sheetName + "数据 完成"
+					+ " " + "数据量 " + String.valueOf(resultDataList.size()) + " 耗时 " + String.valueOf(endTime - begTime) + " 毫秒");
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			e.printStackTrace();
+			throw new Exception("汇总" + sheetName + "数据时发生异常，" + e.getMessage());
+		}
+		try {
+			this.msg.print("输出" + sheetName + "数据 开始");
+			begTime = System.currentTimeMillis();
+			this.dataWriter.writeSheet(wb, sheetName + this.outputSheetSuffix, resultDataList);
+			endTime = System.currentTimeMillis();
+			this.msg.print("输出" + sheetName + "数据 完成");
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			e.printStackTrace();
+			throw new Exception("输出" + sheetName + "数据时发生异常，" + e.getMessage());
+		}
+	}
+	
+	private void saveFile(XSSFWorkbook wb) throws Exception {
+		long begTime = -1L;
+		long endTime = -1L;
+		try {
+			this.msg.print("保存 开始");
+			begTime = System.currentTimeMillis();
+			this.dataWriter.saveWorkbook(this.getFilePath(), wb);
+			endTime = System.currentTimeMillis();
+			this.msg.print("保存 完成"  + " 耗时 " + String.valueOf(endTime - begTime) + " 毫秒");
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			e.printStackTrace();
+			throw new Exception("保存时发生异常，" + e.getMessage());
+		}
+	}
 		
+	private List<CountResource> getResource(List<BaseData> dList, XSSFWorkbook wb, String sheetName) {
 		List<CountResource> list = new ArrayList<CountResource>();
-		for(String gdh : gdMap.keySet()) {
-			CountResource r = new CountResource();
-			r.setGdbh(gdh);
-			r.setDs(gdMap.get(gdh).getGzfsds());
-			if(gjMap.containsKey(gdh)) {
-				String gjbt = gjMap.get(gdh).getGjbt();
-				if(gjbt != null && !"".equals(gjbt.trim())) {
-					r.setGjbt(gjbt);
-				}
+		CountResource cr = null;
+		for(BaseData d : dList) {
+			String title = this.getTitle(d.getRwm());
+			if(title == null || "".equals(title)) {
+				this.msg.print("==========================");
+				this.msg.print("异常数据【任务标题获取失败】：" + sheetName + " " + String.valueOf(d.getRowIndex()));
+				this.msg.print("==========================");
+				this.dataWriter.writeErrRowStyle(wb, sheetName, d.getRowIndex());
+			} else {
+				cr = new CountResource();
+				cr.setTitle(title);
+				cr.setDs(d.getDs());
+				list.add(cr);
 			}
-			if(r.getGjbt() == null) {
-				r.setGjbt(gdMap.get(gdh).getRwm());
-			}
-			list.add(r);
 		}
 		return list;
 	}
 	
-	private List<CountResource> getDHResourceList(List<DHGD> gdList, List<DHGJ> gjList) {
-		Map<String, DHGD> gdMap = new HashMap<String, DHGD>();
-		for(DHGD gd : gdList) {
-			String key = gd.getGdbh();
-			if(key == null || "".equals(key.trim())) {
-				this.msg.print("WARN 动环工单 工单编号为空");
-			} else {
-				gdMap.put(key.trim(), gd);
-			}
-		}
-		Map<String, DHGJ> gjMap = new HashMap<String, DHGJ>();
-		for(DHGJ gj : gjList) {
-			String key = gj.getGdh();
-			if(key == null || "".equals(key.trim())) {
-				this.msg.print("WARN 动环告警 工单号为空");
-			} else {
-				gjMap.put(key.trim(), gj);
-			}
-		}
-		
-		List<CountResource> list = new ArrayList<CountResource>();
-		for(String gdh : gdMap.keySet()) {
-			CountResource r = new CountResource();
-			r.setGdbh(gdh);
-			r.setDs(gdMap.get(gdh).getGzfsds());
-			if(gjMap.containsKey(gdh)) {
-				String gjbt = gjMap.get(gdh).getGjbt();
-				if(gjbt != null && !"".equals(gjbt.trim())) {
-					r.setGjbt(gjbt);
-				}
-			}
-			if(r.getGjbt() == null) {
-				r.setGjbt(gdMap.get(gdh).getRwm());
-			}
-			list.add(r);
-		}
-		return list;
-	}
-	
-	private List<CountResource> getJKResourceList(List<JKGD> gdList, List<JKGJ> gjList) {
-		Map<String, JKGD> gdMap = new HashMap<String, JKGD>();
-		for(JKGD gd : gdList) {
-			String key = gd.getGdbh();
-			if(key == null || "".equals(key.trim())) {
-				this.msg.print("WARN 动环工单 工单编号为空");
-			} else {
-				gdMap.put(key.trim(), gd);
-			}
-		}
-		Map<String, JKGJ> gjMap = new HashMap<String, JKGJ>();
-		for(JKGJ gj : gjList) {
-			String key = gj.getGdh();
-			if(key == null || "".equals(key.trim())) {
-				this.msg.print("WARN 动环告警 工单号为空");
-			} else {
-				gjMap.put(key.trim(), gj);
-			}
-		}
-		
-		List<CountResource> list = new ArrayList<CountResource>();
-		for(String gdh : gdMap.keySet()) {
-			CountResource r = new CountResource();
-			r.setGdbh(gdh);
-			r.setDs(gdMap.get(gdh).getGzfsds());
-			if(gjMap.containsKey(gdh)) {
-				String gjbt = gjMap.get(gdh).getGjbt();
-				if(gjbt != null && !"".equals(gjbt.trim())) {
-					r.setGjbt(gjbt);
-				}
-			}
-			if(r.getGjbt() == null) {
-				r.setGjbt(gdMap.get(gdh).getRwm());
-			}
-			list.add(r);
-		}
-		return list;
-	}
-	
-	private List<CountResult> getResultList(List<CountResource> list) {
-		Map<String, CountResult> data = new HashMap<String, CountResult>();
-		
-		CountResult  r = null;
-		for(CountResource res : list) {
-			if(data.containsKey(res.getGjbt())) {
-				//告警标题已存在
-				r = data.get(res.getGjbt());
-				Map<String, Integer> lDetail = r.getDetail();
-				if(r.getDetail().containsKey(res.getDs())) {
-					//地市已存在
-					lDetail.put(res.getDs(), lDetail.get(res.getDs()) + 1);
+	private List<CountResult> getResult(List<CountResource> dList) {
+		Map<String, CountResult> dMap = new HashMap<String, CountResult>();
+		CountResult r = null;
+		for(CountResource cr : dList) {
+			if(dMap.containsKey(cr.getTitle())) {
+				r = dMap.get(cr.getTitle());
+				Map<String, Integer> detail = r.getDetail();
+				if(detail.containsKey(cr.getDs())) {
+					detail.put(cr.getDs(), detail.get(cr.getDs()) + 1);
 				} else {
-					//地市不存在
-					lDetail.put(res.getDs(), 1);
+					detail.put(cr.getDs(), 1);
 				}
-				r.setDetail(lDetail);
+				r.setDetail(detail);
 				r.setTotal(r.getTotal() + 1);
 			} else {
-				//告警标题不存在
 				r = new CountResult();
-				r.setHbq(res.getGjbt());
-				Map<String, Integer> lDetail = new HashMap<String, Integer>();
-				lDetail.put(res.getDs(),1);
-				r.setDetail(lDetail);
+				Map<String, Integer> detail = new HashMap<String, Integer>();
+				detail.put(cr.getDs(), 1);
+				r.setHbq(cr.getTitle());;
+				r.setDetail(detail);
 				r.setTotal(1);
 			}
-			data.put(r.getHbq(), r);
+			dMap.put(cr.getTitle(), r);
 		}
-		List<CountResult> result = new ArrayList<CountResult>();
-		for(CountResult cr : data.values()) {
-			result.add(cr);
+		List<CountResult> list = new ArrayList<CountResult>();
+		for(CountResult cr : dMap.values()) {
+			list.add(cr);
 		}
-		return result;
+		return list;
 	}
 	
+	private String getTitle(String rwm) {
+		if(rwm == null) {
+			return null;
+		}
+		int p = rwm.indexOf(this.titlePrefix);
+		if(p < 0) {
+			return null;
+		}
+		int s = rwm.substring(p + this.titlePrefix.length()).indexOf(this.titleSuffix);
+		if(s < 0) {
+			return null;
+		}
+		return rwm.substring(p + this.titlePrefix.length(), p + this.titlePrefix.length() + s);
+	}
+	
+	private String getFilePath() throws Exception {
+		return this.getDataPath() +this.fileName;
+	}
+	
+	private String getDataPath() throws Exception {
+		return ResourceUtils.getURL(this.filePath).getPath();
+	}
 }

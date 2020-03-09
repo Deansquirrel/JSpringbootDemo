@@ -1,23 +1,26 @@
 package com.yuansong.demo.boot.excel.service;
 
-import java.io.File;
 import java.io.FileOutputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.poi.ss.usermodel.BorderStyle;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.FillPatternType;
 import org.apache.poi.ss.usermodel.HorizontalAlignment;
+import org.apache.poi.ss.usermodel.IndexedColors;
+import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFCellStyle;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.util.ResourceUtils;
 
 import com.yuansong.demo.boot.excel.DO.CountResult;
 
@@ -29,44 +32,63 @@ public class DataWriter {
 	@Autowired
 	private Message msg;
 	
-	public String saveData(
-			List<CountResult> cs, 
-			List<CountResult> dh, 
-			List<CountResult> jk) throws Exception {
-		
-		XSSFWorkbook workbook=new XSSFWorkbook();
+	public void writeSheet(XSSFWorkbook workbook, String sheetName, List<CountResult> data) throws Exception {
+		if(workbook.getSheetIndex(sheetName) > -1) {
+			workbook.removeSheetAt(workbook.getSheetIndex(sheetName));
+		}
 		XSSFSheet sheet = null;
-		
-		sheet = workbook.createSheet("传输每日工单分析");
+		sheet = workbook.createSheet(sheetName);
 		this.sheetInit(sheet, this.getHSSFCellStyle(workbook));
-		this.saveSheetData(sheet, cs, this.getHSSFCellStyle(workbook));
-		
-		sheet = workbook.createSheet("动环每日工单分析");
-		this.sheetInit(sheet, this.getHSSFCellStyle(workbook));
-		this.saveSheetData(sheet, dh, this.getHSSFCellStyle(workbook));
-		
-		sheet = workbook.createSheet("家客每日工单分析");
-		this.sheetInit(sheet, this.getHSSFCellStyle(workbook));
-		this.saveSheetData(sheet, jk, this.getHSSFCellStyle(workbook));
-		
-		this.checkAndCreateFolder(this.getOutputPath());
-        
-        //文档输出
+		this.dataSaveClean(data);
+		this.saveSheetData(sheet, data, this.getHSSFCellStyle(workbook));
+	}
+	
+	public void saveWorkbook(String filePath, XSSFWorkbook workbook) throws Exception {
         FileOutputStream out = null;
-        String fileName = String.valueOf(System.currentTimeMillis()) + ".xlsx";
         try {
-        	out = new FileOutputStream(this.getOutputPath() + File.separator + fileName);
+        	out = new FileOutputStream(filePath);
         	workbook.write(out);
-        } finally {
+        } catch(Exception e) {
+        	throw e;
+        }
+        finally {
         	try {
         		out.close();
         	} catch(Exception e ) {
         		e.printStackTrace();
         	}
         }
-        return fileName;
 	}
 	
+	private void dataSaveClean(List<CountResult> list) {
+		List<String> dsList = this.getDsList();
+		Map<String, Integer> detail = null;
+		List<String> tList = new ArrayList<String>();
+		for(CountResult cr : list) {
+			 detail = cr.getDetail();
+			 tList.clear();
+			 for(String ds : detail.keySet()) {
+				 if(dsList.indexOf(ds) < 0) {
+					 cr.setTotal(cr.getTotal() - detail.get(ds));
+					 tList.add(ds);
+				 }
+			 }
+			 for(String ds : tList) {
+				 this.msg.print("==========================");
+					this.msg.print("异常数据【地市不在规定范围】：" + cr.getHbq() + " " + ds + " " + String.valueOf(cr.getDetail().get(ds)));
+					this.msg.print("==========================");
+				 detail.remove(ds);
+			 }
+			 cr.setDetail(detail);
+		}
+		Iterator<CountResult> iterator = list.iterator();
+        while(iterator.hasNext()) {
+            if(iterator.next().getTotal() == 0) {
+            	iterator.remove();
+            }
+        }
+	}
+		
 	private void saveSheetData(XSSFSheet sheet, List<CountResult> list, CellStyle cellStyle) {
 		List<String> hbqList = new ArrayList<String>();
 		for(CountResult r : list) {
@@ -93,7 +115,10 @@ public class DataWriter {
 					dIndex = dsList.indexOf(ds) + 1;
 					row.getCell(dIndex).setCellValue(cr.getDetail().get(ds));
 				} else {
-					this.msg.print(cr.getHbq() + " " + ds + " " + String.valueOf(cr.getDetail().get(ds)));
+//					数据清洗过程已包含
+//					this.msg.print("==========================");
+//					this.msg.print("异常数据【地市不在规定范围】：" + cr.getHbq() + " " + ds + " " + String.valueOf(cr.getDetail().get(ds)));
+//					this.msg.print("==========================");
 				}
 			}
 			row.getCell(dsList.size()).setCellValue(cr.getTotal());
@@ -137,6 +162,33 @@ public class DataWriter {
 		return str;
 	}
 	
+	public void writeErrRowStyle(XSSFWorkbook wb, String sheetName, int rowIndex) {
+		XSSFSheet sheet = wb.getSheet(sheetName);
+		if(sheet == null) {
+			return;
+		} else {
+			XSSFRow row = sheet.getRow(rowIndex);
+			if(row == null) {
+				return;
+			} else {
+				for(int i = 0; i <= row.getLastCellNum(); i++) {
+					XSSFCell cell = row.getCell(i);
+					if(cell != null) {
+						XSSFCellStyle style = wb.createCellStyle();
+						style.cloneStyleFrom(cell.getCellStyle());
+						cell.setCellStyle(this.getErrRowHSSFCellStyle(style));
+					}
+				}
+			}
+		}
+	}
+	
+	private XSSFCellStyle getErrRowHSSFCellStyle(XSSFCellStyle style) {
+		style.setFillForegroundColor(IndexedColors.YELLOW.getIndex());
+		style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+		return style;
+	}
+	
 	private XSSFCellStyle getHSSFCellStyle(XSSFWorkbook workbook) {
 		XSSFCellStyle cellStyle = workbook.createCellStyle();
 
@@ -148,17 +200,6 @@ public class DataWriter {
 		cellStyle.setAlignment(HorizontalAlignment.CENTER);
 		
 		return cellStyle;
-	}
-	
-	private void checkAndCreateFolder(String path) {
-		File file = new File(path);
-		if(!file.exists()) {
-			file.mkdirs();
-		}
-	}
-	
-	public String getOutputPath() throws Exception {
-		return ResourceUtils.getURL("output").getPath();
 	}
 	
 	private void setAutoSizeColumn(XSSFSheet sheet, int col) throws UnsupportedEncodingException {
